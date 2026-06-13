@@ -57,9 +57,16 @@ h1 { font-size: 20px; font-weight: 700; color: #1a1a2e; }
 .preview-header h2 { font-size: 14px; font-weight: 700; }
 .preview-header .ph-sub { font-size: 11px; color: #aab; margin-top: 2px; }
 
-.info-grid { display: grid; grid-template-columns: 140px 1fr; gap: 6px 12px; font-size: 13px; margin-bottom: 1.25rem; }
+/* Info grid — label/value rows */
+.info-grid { display: grid; grid-template-columns: 140px 1fr; gap: 6px 12px; font-size: 13px; margin-bottom: 1.25rem; align-items: center; }
 .info-grid .lbl { color: #666; font-weight: 600; }
 .info-grid .val { color: #111; }
+
+/* Date pill */
+.date-pill {
+  display: inline-block; background: #e8eeff; color: #2c3e7a;
+  border: 1px solid #b0bfec; border-radius: 999px;
+  padding: 2px 12px; font-size: 12px; font-weight: 700; letter-spacing: 0.02em; }
 
 .q-block { margin-bottom: 1rem; }
 .q-heading {
@@ -93,7 +100,8 @@ h1 { font-size: 20px; font-weight: 700; color: #1a1a2e; }
 <body>
 <div class="page">
 
-  <h1>STA513:Statistical Programming Code Submission</h1>
+  <h1>STA513: Statistical Programming</h1>
+  <p class="subtitle" style="font-size:16px; font-weight:600; color:#444; margin-bottom:0.25rem;">Code Submission</p>
   <p class="subtitle">Upload your .sas file, fill in your details, then download as PDF to submit.</p>
 
   <!-- STUDENT INFO -->
@@ -109,16 +117,16 @@ h1 { font-size: 20px; font-weight: 700; color: #1a1a2e; }
         <input type="text" id="inp-id" placeholder="e.g. 2026123456" oninput="refreshPreview()">
       </div>
       <div class="form-group">
-        <label>Class / Group</label>
+        <label>Group</label>
         <input type="text" id="inp-class" placeholder="e.g. CS2613A" oninput="refreshPreview()">
       </div>
-      <div class="form-group" style="grid-column:span 2;">
+      <div class="form-group">
         <label>Date Submitted</label>
         <input type="date" id="inp-date" oninput="refreshPreview()">
       </div>
-      <div class="form-group">
-        <label>Dataset Name / Exercise </label>
-        <input type="text" id="inp-set" placeholder="e.g. retail_sales.csv / P1C8" oninput="refreshPreview()">
+      <div class="form-group" style="grid-column:span 2;">
+        <label>Title of Submission</label>
+        <input type="text" id="inp-set" placeholder="Exercise P1C8" oninput="refreshPreview()">
       </div>
     </div>
   </div>
@@ -195,7 +203,7 @@ function handleFile(file) {
     const zone = document.getElementById('upload-zone');
     zone.classList.add('has-file');
     document.getElementById('up-icon').textContent = '✅';
-    document.getElementById('up-text').innerHTML = '<strong>' + fileName + '</strong> loaded successfully';
+    document.getElementById('up-text').innerHTML = '<strong>' + escHtml(fileName) + '</strong> loaded successfully';
     buildPreview();
   };
   reader.onerror = () => alert('Could not read file. Please try again.');
@@ -217,16 +225,25 @@ function removeFile() {
 function v(id) { return document.getElementById(id).value.trim() || '(not provided)'; }
 
 function buildPreview() {
+  const dateVal = document.getElementById('inp-date').value;
+  const dateFormatted = fmtDate(dateVal);
+
   const fields = [
-    ['Full Name', v('inp-name')], ['Student ID', v('inp-id')],
-    ['Class / Group', v('inp-class')], ['Dataset Name', v('inp-set')],
-    ['Date Submitted', fmtDate(document.getElementById('inp-date').value)],
-    ['File Submitted', fileName]
+    ['Full Name',           v('inp-name'),  false],
+    ['Student ID',          v('inp-id'),    false],
+    ['Group',               v('inp-class'), false],
+    ['Date Submitted',      dateFormatted,  true ],   // pill = true
+    ['File Submitted',      fileName,       false],
+    ['Title of Submission', v('inp-set'),   false],
   ];
+
   const ig = document.getElementById('info-grid');
   ig.innerHTML = '';
-  fields.forEach(([l, val]) => {
-    ig.innerHTML += '<span class="lbl">' + l + '</span><span class="val">' + escHtml(val) + '</span>';
+  fields.forEach(([l, val, pill]) => {
+    ig.innerHTML += '<span class="lbl">' + escHtml(l) + '</span>'
+      + (pill
+          ? '<span class="val"><span class="date-pill">' + escHtml(val) + '</span></span>'
+          : '<span class="val">' + escHtml(val) + '</span>');
   });
 
   const secs = splitSections(sasCode);
@@ -290,10 +307,10 @@ function downloadPDF() {
       const CW = PW - ML - MR;
       let y = MT;
 
-      const addPage = () => { doc.addPage(); y = MT; drawFooter(doc, PW, PH, ML); };
+      const addPage = () => { doc.addPage(); y = MT; };
       const checkY = (need) => { if (y + need > PH - MB) addPage(); };
 
-      // Header
+      // Header bar
       doc.setFillColor(26, 26, 46);
       doc.rect(ML, y - 14, CW, 38, 'F');
       doc.setFont('helvetica', 'bold'); doc.setFontSize(12); doc.setTextColor(255,255,255);
@@ -303,11 +320,14 @@ function downloadPDF() {
       y += 48; doc.setTextColor(0,0,0);
 
       // Info table
+      const dateVal = document.getElementById('inp-date').value;
       const infoRows = [
-        ['Full Name', v('inp-name')], ['Student ID', v('inp-id')],
-        ['Class / Group', v('inp-class')], ['Dataset Name', v('inp-set')],
-        ['Date Submitted', fmtDate(document.getElementById('inp-date').value)],
-        ['File Submitted', fileName]
+        ['Full Name',           v('inp-name')],
+        ['Student ID',          v('inp-id')],
+        ['Group',               v('inp-class')],
+        ['Date Submitted',      fmtDate(dateVal)],
+        ['File Submitted',      fileName],
+        ['Title of Submission', v('inp-set')],
       ];
       const rh = 16, lw = 130;
       infoRows.forEach(([label, val], i) => {
@@ -317,8 +337,19 @@ function downloadPDF() {
         doc.setDrawColor(210); doc.rect(ML, y - 11, CW, rh, 'S');
         doc.setFont('helvetica', 'bold'); doc.setFontSize(9.5); doc.setTextColor(80,80,80);
         doc.text(label, ML + 6, y);
-        doc.setFont('helvetica', 'normal'); doc.setTextColor(0,0,0);
-        doc.text(val, ML + lw, y);
+
+        // Date pill in PDF: draw a rounded rect behind the date text
+        if (label === 'Date Submitted') {
+          const tw = doc.getTextWidth(val) + 14;
+          doc.setFillColor(232, 238, 255); doc.setDrawColor(176, 191, 236);
+          doc.roundedRect(ML + lw - 2, y - 10, tw, 13, 3, 3, 'FD');
+          doc.setFont('helvetica', 'bold'); doc.setTextColor(44, 62, 122);
+          doc.text(val, ML + lw + 5, y);
+          doc.setTextColor(0,0,0);
+        } else {
+          doc.setFont('helvetica', 'normal'); doc.setTextColor(0,0,0);
+          doc.text(val, ML + lw, y);
+        }
         y += rh;
       });
       y += 14;
@@ -327,7 +358,6 @@ function downloadPDF() {
       const secs = splitSections(sasCode);
       secs.forEach((sec) => {
         checkY(40);
-        // Section heading bar
         doc.setFillColor(44, 62, 122);
         doc.rect(ML, y - 12, CW, 20, 'F');
         doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(255,255,255);
@@ -335,7 +365,6 @@ function downloadPDF() {
         doc.setTextColor(0,0,0);
         y += 14;
 
-        // Code lines
         doc.setFont('courier', 'normal'); doc.setFontSize(8.5);
         const lines = doc.splitTextToSize(sec.code.trim(), CW - 10);
         const LH = 11;
@@ -347,16 +376,17 @@ function downloadPDF() {
         y += 12;
       });
 
-      // Footer on page 1
-      drawFooter(doc, PW, PH, ML);
-
-      // Footer on all other pages
+      // Footers
       const total = doc.internal.getNumberOfPages();
-      for (let p = 2; p <= total; p++) {
-        doc.setPage(p); drawFooter(doc, PW, PH, ML, p, total);
+      for (let p = 1; p <= total; p++) {
+        doc.setPage(p);
+        doc.setDrawColor(180); doc.setLineWidth(0.5);
+        doc.line(ML, PH - 35, PW - ML, PH - 35);
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(120);
+        doc.text('STA513 Lab Test  |  ' + new Date().toLocaleString('en-GB'), ML, PH - 22);
+        doc.text('Page ' + p + ' of ' + total, PW - ML, PH - 22, { align: 'right' });
+        doc.setTextColor(0);
       }
-      // Fix page 1 with correct total
-      doc.setPage(1); drawFooter(doc, PW, PH, ML, 1, total);
 
       const sid = v('inp-id').replace(/[^a-zA-Z0-9]/g, '');
       doc.save('STA513_' + sid + '_submission.pdf');
@@ -369,17 +399,6 @@ function downloadPDF() {
       spinner.style.display = 'none';
     }
   }, 50);
-}
-
-function drawFooter(doc, PW, PH, ML, page, total) {
-  const CW = PW - ML * 2;
-  doc.setDrawColor(180); doc.setLineWidth(0.5);
-  doc.line(ML, PH - 35, PW - ML, PH - 35);
-  doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(120);
-  const pageStr = (page && total) ? 'Page ' + page + ' of ' + total : '';
-  doc.text('STA513 Lab Test  |  ' + new Date().toLocaleString('en-GB'), ML, PH - 22);
-  if (pageStr) doc.text(pageStr, PW - ML, PH - 22, { align: 'right' });
-  doc.setTextColor(0);
 }
 
 function setStatus(msg, isErr) {
