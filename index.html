@@ -4,264 +4,389 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>STA513 Lab Test — SAS Code Submission</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: Arial, sans-serif; font-size: 14px; color: #222; background: #f5f5f5; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: Arial, sans-serif; font-size: 14px; color: #222; background: #f0f2f5; min-height: 100vh; }
 
-  /* ── Screen styles ── */
-  @media screen {
-    .screen-wrapper { max-width: 860px; margin: 2rem auto; padding: 1.5rem; }
-    .card { background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem; }
-    h1 { font-size: 20px; font-weight: 700; color: #1a1a2e; margin-bottom: 4px; }
-    .subtitle { color: #666; font-size: 13px; margin-bottom: 1.5rem; }
-    .section-title { font-size: 13px; font-weight: 700; text-transform: uppercase;
-                     letter-spacing: 0.05em; color: #555; margin-bottom: 10px; }
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .form-group { display: flex; flex-direction: column; gap: 4px; }
-    .form-group label { font-size: 12px; font-weight: 600; color: #444; }
-    .form-group input, .form-group select {
-      border: 1px solid #ccc; border-radius: 5px; padding: 7px 10px;
-      font-size: 13px; outline: none; }
-    .form-group input:focus, .form-group select:focus { border-color: #4a6cf7; }
-    .upload-zone {
-      border: 2px dashed #bbb; border-radius: 8px; padding: 2rem;
-      text-align: center; cursor: pointer; transition: all 0.2s; background: #fafafa; }
-    .upload-zone:hover, .upload-zone.dragover { border-color: #4a6cf7; background: #eef1ff; }
-    .upload-zone .icon { font-size: 32px; margin-bottom: 8px; }
-    .upload-zone p { color: #666; font-size: 13px; }
-    .upload-zone strong { color: #333; }
-    #file-input { display: none; }
-    .file-info { display: none; align-items: center; gap: 10px; padding: 10px 14px;
-                 background: #eef6ee; border: 1px solid #b2d9b2; border-radius: 6px; }
-    .file-info .filename { font-weight: 600; font-size: 13px; color: #2a6e2a; }
-    .file-info .filesize { font-size: 12px; color: #555; }
-    .btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
-    .btn {
-      padding: 9px 20px; border-radius: 6px; font-size: 13px; font-weight: 600;
-      cursor: pointer; border: none; transition: opacity 0.15s; }
-    .btn:hover { opacity: 0.85; }
-    .btn-primary { background: #4a6cf7; color: #fff; }
-    .btn-secondary { background: #e0e0e0; color: #333; }
-    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
-    #preview-section { display: none; }
-    .notice { background: #fff8e6; border: 1px solid #f5c842; border-radius: 6px;
-              padding: 10px 14px; font-size: 12px; color: #7a5c00; margin-bottom: 1rem; }
-    .notice strong { color: #5a4200; }
-  }
+.page { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; }
 
-  /* ── Print styles (the PDF output) ── */
-  @media print {
-    .screen-only { display: none !important; }
-    body { background: #fff; color: #000; font-size: 11pt; }
-    .print-wrapper { width: 100%; }
+h1 { font-size: 20px; font-weight: 700; color: #1a1a2e; }
+.subtitle { color: #666; font-size: 13px; margin-top: 4px; margin-bottom: 1.5rem; }
 
-    .print-header { border-bottom: 2px solid #1a1a2e; padding-bottom: 10px; margin-bottom: 16px; }
-    .print-header h1 { font-size: 15pt; font-weight: 700; color: #1a1a2e; }
-    .print-header .course { font-size: 10pt; color: #444; margin-top: 2px; }
+.card { background: #fff; border: 1px solid #ddd; border-radius: 10px; padding: 1.5rem; margin-bottom: 1.25rem; }
+.card-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: #888; margin-bottom: 14px; }
 
-    .info-table { width: 100%; border-collapse: collapse; margin-bottom: 14px; font-size: 10pt; }
-    .info-table td { padding: 4px 8px; border: 0.5pt solid #bbb; }
-    .info-table td:first-child { font-weight: 700; background: #f0f0f0; width: 30%; }
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-group { display: flex; flex-direction: column; gap: 5px; }
+.form-group label { font-size: 12px; font-weight: 600; color: #444; }
+.form-group input {
+  border: 1px solid #ccc; border-radius: 6px; padding: 8px 11px;
+  font-size: 13px; font-family: Arial, sans-serif; outline: none;
+  transition: border-color 0.15s; }
+.form-group input:focus { border-color: #4a6cf7; box-shadow: 0 0 0 3px rgba(74,108,247,0.1); }
 
-    .section-heading { font-size: 11pt; font-weight: 700; background: #1a1a2e;
-                       color: #fff; padding: 4px 8px; margin: 14px 0 6px; }
+.upload-zone {
+  border: 2px dashed #c0c8e8; border-radius: 8px; padding: 2rem 1rem;
+  text-align: center; cursor: pointer; transition: all 0.2s; background: #f8f9ff; }
+.upload-zone:hover { border-color: #4a6cf7; background: #eef1ff; }
+.upload-zone.dragover { border-color: #4a6cf7; background: #e0e8ff; }
+.upload-zone.has-file { border-color: #2a9e4f; border-style: solid; background: #f0fbf4; }
+.upload-zone .up-icon { font-size: 28px; margin-bottom: 8px; }
+.upload-zone .up-text { font-size: 13px; color: #555; }
+.upload-zone .up-hint { font-size: 11px; color: #999; margin-top: 4px; }
+#file-input { display: none; }
 
-    .code-block { font-family: 'Courier New', Courier, monospace; font-size: 9pt;
-                  line-height: 1.5; white-space: pre-wrap; word-break: break-all;
-                  border: 0.5pt solid #aaa; padding: 10px; background: #fafafa; }
+.file-badge {
+  display: none; align-items: center; gap: 10px; margin-top: 10px;
+  background: #edf7f0; border: 1px solid #a3d9b5; border-radius: 6px; padding: 10px 14px; }
+.file-badge.show { display: flex; }
+.file-badge .fname { font-weight: 700; font-size: 13px; color: #1e6e3d; }
+.file-badge .fsize { font-size: 12px; color: #555; margin-left: 4px; }
+.file-badge .remove-btn {
+  margin-left: auto; background: none; border: none; cursor: pointer;
+  color: #888; font-size: 18px; line-height: 1; padding: 0 4px; }
+.file-badge .remove-btn:hover { color: #c00; }
 
-    .footer { border-top: 1pt solid #bbb; margin-top: 20px; padding-top: 6px;
-              font-size: 9pt; color: #555; text-align: center; }
-    .page-break { page-break-before: always; }
-  }
+.preview-card { display: none; }
+.preview-card.show { display: block; }
+
+.preview-header {
+  background: #1a1a2e; color: #fff; border-radius: 8px 8px 0 0;
+  padding: 14px 18px; margin: -1.5rem -1.5rem 1.25rem; }
+.preview-header h2 { font-size: 14px; font-weight: 700; }
+.preview-header .ph-sub { font-size: 11px; color: #aab; margin-top: 2px; }
+
+.info-grid { display: grid; grid-template-columns: 140px 1fr; gap: 6px 12px; font-size: 13px; margin-bottom: 1.25rem; }
+.info-grid .lbl { color: #666; font-weight: 600; }
+.info-grid .val { color: #111; }
+
+.q-block { margin-bottom: 1rem; }
+.q-heading {
+  background: #2c3e7a; color: #fff; padding: 5px 12px;
+  font-size: 12px; font-weight: 700; border-radius: 4px 4px 0 0; }
+.q-code {
+  font-family: 'Courier New', monospace; font-size: 12px; line-height: 1.6;
+  background: #f8f8f8; border: 1px solid #ddd; border-top: none;
+  padding: 12px; white-space: pre-wrap; word-break: break-all;
+  border-radius: 0 0 4px 4px; max-height: 400px; overflow-y: auto; }
+
+.btn-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+.btn {
+  padding: 10px 22px; border-radius: 7px; font-size: 13px; font-weight: 700;
+  cursor: pointer; border: none; transition: all 0.15s; }
+.btn-download { background: #1e9e50; color: #fff; }
+.btn-download:hover { background: #177a3e; }
+.btn-download:disabled { background: #9ecfb5; cursor: not-allowed; }
+.btn-reset { background: #f0f0f0; color: #444; border: 1px solid #ccc; }
+.btn-reset:hover { background: #e0e0e0; }
+
+.spinner { display:none; width:16px; height:16px; border:2px solid #fff;
+  border-top-color:transparent; border-radius:50%; animation: spin 0.6s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.status-msg { font-size: 12px; color: #555; margin-left: 4px; }
+.status-msg.ok { color: #1e7a3e; }
+.status-msg.err { color: #c00; }
 </style>
 </head>
 <body>
+<div class="page">
 
-<!-- ═══ SCREEN UI ═══ -->
-<div class="screen-wrapper screen-only">
+  <h1>STA513 Lab Test — Code Submission</h1>
+  <p class="subtitle">Upload your .sas file, fill in your details, then download as PDF to submit.</p>
+
+  <!-- STUDENT INFO -->
   <div class="card">
-    <h1>STA513 Lab Test — Code Submission</h1>
-    <p class="subtitle">Upload your .sas file, fill in your details, then save as PDF to submit.</p>
-
-    <p class="section-title">Student Information</p>
-    <div class="form-grid" style="margin-bottom:1.25rem;">
+    <div class="card-title">Student Information</div>
+    <div class="form-grid" style="margin-bottom:0;">
       <div class="form-group">
         <label>Full Name</label>
-        <input type="text" id="inp-name" placeholder="e.g. Ahmad bin Ali">
+        <input type="text" id="inp-name" placeholder="e.g. Ahmad bin Ali" oninput="refreshPreview()">
       </div>
       <div class="form-group">
         <label>Student ID</label>
-        <input type="text" id="inp-id" placeholder="e.g. 2026123456">
+        <input type="text" id="inp-id" placeholder="e.g. 2026123456" oninput="refreshPreview()">
       </div>
       <div class="form-group">
         <label>Class / Group</label>
-        <input type="text" id="inp-class" placeholder="e.g. CS2613A">
+        <input type="text" id="inp-class" placeholder="e.g. CS2613A" oninput="refreshPreview()">
       </div>
       <div class="form-group">
         <label>Dataset Name</label>
-        <input type="text" id="inp-set" placeholder="e.g. retail_sales.csv">
+        <input type="text" id="inp-set" placeholder="e.g. retail_sales.csv" oninput="refreshPreview()">
       </div>
-      <div class="form-group" style="grid-column: span 2;">
+      <div class="form-group" style="grid-column:span 2;">
         <label>Date Submitted</label>
-        <input type="date" id="inp-date">
-      </div>
-    </div>
-
-    <p class="section-title">Upload SAS File</p>
-    <div class="upload-zone" id="upload-zone" onclick="document.getElementById('file-input').click()">
-      <div class="icon">📄</div>
-      <p><strong>Click to upload</strong> or drag &amp; drop your <strong>.sas</strong> file here</p>
-      <p style="margin-top:4px; font-size:11px; color:#999;">Only .sas files accepted</p>
-    </div>
-    <input type="file" id="file-input" accept=".sas,.txt">
-
-    <div class="file-info" id="file-info" style="margin-top:10px;">
-      <span style="font-size:20px;">✅</span>
-      <div>
-        <div class="filename" id="file-name-display"></div>
-        <div class="filesize" id="file-size-display"></div>
+        <input type="date" id="inp-date" oninput="refreshPreview()">
       </div>
     </div>
   </div>
 
-  <div class="card" id="preview-section">
-    <div class="notice">
-      <strong>Before saving as PDF:</strong> Check your name, student ID, and that the code below is complete and correct.
-      Then click <strong>Save as PDF</strong> below (or press Ctrl+P / Cmd+P and choose "Save as PDF").
+  <!-- UPLOAD -->
+  <div class="card">
+    <div class="card-title">Upload SAS File</div>
+    <div class="upload-zone" id="upload-zone"
+         onclick="document.getElementById('file-input').click()"
+         ondragover="ev(event,'dragover')" ondragleave="ev(event,'dragleave')" ondrop="ev(event,'drop')">
+      <div class="up-icon" id="up-icon">📂</div>
+      <div class="up-text" id="up-text"><strong>Click to choose</strong> or drag &amp; drop your <strong>.sas</strong> file</div>
+      <div class="up-hint">Only .sas files are accepted</div>
     </div>
-    <div class="btn-row">
-      <button class="btn btn-primary" onclick="window.print()">🖨️ Save as PDF</button>
-      <button class="btn btn-secondary" onclick="resetForm()">↩ Start over</button>
+    <input type="file" id="file-input" accept=".sas,.txt" onchange="handleFile(this.files[0])">
+
+    <div class="file-badge" id="file-badge">
+      <span>✅</span>
+      <span class="fname" id="fname-display"></span>
+      <span class="fsize" id="fsize-display"></span>
+      <button class="remove-btn" onclick="removeFile()" title="Remove file">×</button>
     </div>
   </div>
-</div>
 
-<!-- ═══ PRINT OUTPUT ═══ -->
-<div class="print-wrapper" id="print-wrapper" style="display:none;">
-  <div class="print-header">
-    <h1>STA513 Statistical Programming — Lab Test Submission</h1>
-    <div class="course">Faculty of Computer and Mathematical Sciences &nbsp;|&nbsp; Universiti Teknologi MARA</div>
+  <!-- PREVIEW -->
+  <div class="card preview-card" id="preview-card">
+    <div class="preview-header">
+      <h2>STA513 Statistical Programming — Lab Test Submission</h2>
+      <div class="ph-sub">Faculty of Computer and Mathematical Sciences &nbsp;|&nbsp; Universiti Teknologi MARA</div>
+    </div>
+
+    <div class="info-grid" id="info-grid"></div>
+    <div id="code-sections"></div>
+
+    <div class="btn-row" style="margin-top:1rem; padding-top:1rem; border-top:1px solid #eee;">
+      <button class="btn btn-download" id="dl-btn" onclick="downloadPDF()">
+        <span id="dl-label">⬇ Download PDF</span>
+        <span class="spinner" id="dl-spinner"></span>
+      </button>
+      <button class="btn btn-reset" onclick="removeFile()">↩ Start over</button>
+      <span class="status-msg" id="status-msg"></span>
+    </div>
   </div>
 
-  <table class="info-table">
-    <tr><td>Full Name</td><td id="p-name"></td></tr>
-    <tr><td>Student ID</td><td id="p-id"></td></tr>
-    <tr><td>Class / Group</td><td id="p-class"></td></tr>
-    <tr><td>Dataset Name</td><td id="p-set"></td></tr>
-    <tr><td>Date Submitted</td><td id="p-date"></td></tr>
-    <tr><td>File Submitted</td><td id="p-file"></td></tr>
-  </table>
-
-  <div id="p-code-sections"></div>
-
-  <div class="footer">
-    STA513 Lab Test &nbsp;|&nbsp; Generated by SAS Submission Tool &nbsp;|&nbsp;
-    <span id="p-timestamp"></span>
-  </div>
 </div>
 
 <script>
-  // Set today's date as default
-  document.getElementById('inp-date').valueAsDate = new Date();
+document.getElementById('inp-date').valueAsDate = new Date();
 
-  const uploadZone = document.getElementById('upload-zone');
-  const fileInput  = document.getElementById('file-input');
-  let sasCode = '';
+let sasCode = '', fileName = '';
 
-  uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('dragover'); });
-  uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('dragover'));
-  uploadZone.addEventListener('drop', e => {
-    e.preventDefault(); uploadZone.classList.remove('dragover');
-    const file = e.dataTransfer.files[0];
-    if (file) loadFile(file);
+function ev(e, type) {
+  e.preventDefault();
+  const zone = document.getElementById('upload-zone');
+  if (type === 'dragover') zone.classList.add('dragover');
+  else if (type === 'dragleave') zone.classList.remove('dragover');
+  else if (type === 'drop') {
+    zone.classList.remove('dragover');
+    if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+  }
+}
+
+function handleFile(file) {
+  if (!file) return;
+  if (!file.name.match(/\.(sas|txt)$/i)) { alert('Please select a .sas file.'); return; }
+  const reader = new FileReader();
+  reader.onload = e => {
+    sasCode = e.target.result;
+    fileName = file.name;
+    const kb = (file.size / 1024).toFixed(1);
+    document.getElementById('fname-display').textContent = fileName;
+    document.getElementById('fsize-display').textContent = '(' + kb + ' KB)';
+    document.getElementById('file-badge').classList.add('show');
+    const zone = document.getElementById('upload-zone');
+    zone.classList.add('has-file');
+    document.getElementById('up-icon').textContent = '✅';
+    document.getElementById('up-text').innerHTML = '<strong>' + fileName + '</strong> loaded successfully';
+    buildPreview();
+  };
+  reader.onerror = () => alert('Could not read file. Please try again.');
+  reader.readAsText(file);
+}
+
+function removeFile() {
+  sasCode = ''; fileName = '';
+  document.getElementById('file-input').value = '';
+  document.getElementById('file-badge').classList.remove('show');
+  const zone = document.getElementById('upload-zone');
+  zone.classList.remove('has-file', 'dragover');
+  document.getElementById('up-icon').textContent = '📂';
+  document.getElementById('up-text').innerHTML = '<strong>Click to choose</strong> or drag &amp; drop your <strong>.sas</strong> file';
+  document.getElementById('preview-card').classList.remove('show');
+  document.getElementById('status-msg').textContent = '';
+}
+
+function v(id) { return document.getElementById(id).value.trim() || '(not provided)'; }
+
+function buildPreview() {
+  const fields = [
+    ['Full Name', v('inp-name')], ['Student ID', v('inp-id')],
+    ['Class / Group', v('inp-class')], ['Dataset Name', v('inp-set')],
+    ['Date Submitted', fmtDate(document.getElementById('inp-date').value)],
+    ['File Submitted', fileName]
+  ];
+  const ig = document.getElementById('info-grid');
+  ig.innerHTML = '';
+  fields.forEach(([l, val]) => {
+    ig.innerHTML += '<span class="lbl">' + l + '</span><span class="val">' + escHtml(val) + '</span>';
   });
-  fileInput.addEventListener('change', () => { if (fileInput.files[0]) loadFile(fileInput.files[0]); });
 
-  function loadFile(file) {
-    if (!file.name.match(/\.(sas|txt)$/i)) {
-      alert('Please upload a .sas file.'); return;
+  const secs = splitSections(sasCode);
+  const cs = document.getElementById('code-sections');
+  cs.innerHTML = '';
+  secs.forEach(s => {
+    cs.innerHTML += '<div class="q-block">'
+      + '<div class="q-heading">' + escHtml(s.title) + '</div>'
+      + '<pre class="q-code">' + escHtml(s.code.trim()) + '</pre>'
+      + '</div>';
+  });
+
+  document.getElementById('preview-card').classList.add('show');
+  document.getElementById('preview-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function refreshPreview() { if (sasCode) buildPreview(); }
+
+function fmtDate(d) {
+  if (!d) return '(not provided)';
+  const dt = new Date(d + 'T00:00:00');
+  return dt.toLocaleDateString('en-GB', { day: '2-digit', month: 'long', year: 'numeric' });
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function splitSections(code) {
+  const pat = /(?=\/\*\s*(?:question|q)\s*\d)/i;
+  const parts = code.split(pat).filter(p => p.trim());
+  if (parts.length <= 1) return [{ title: 'SAS Code', code: code }];
+  return parts.map(p => {
+    const m = p.match(/\/\*\s*(.*?)\s*\*\//);
+    const raw = m ? m[1].replace(/\s+/g,' ').trim() : 'Code Section';
+    return { title: raw.charAt(0).toUpperCase() + raw.slice(1), code: p };
+  });
+}
+
+function downloadPDF() {
+  if (!sasCode) { alert('Please upload a .sas file first.'); return; }
+  if (typeof window.jspdf === 'undefined') {
+    setStatus('jsPDF library not loaded. Check your internet connection.', true); return;
+  }
+
+  const btn = document.getElementById('dl-btn');
+  const label = document.getElementById('dl-label');
+  const spinner = document.getElementById('dl-spinner');
+  btn.disabled = true;
+  label.textContent = 'Generating…';
+  spinner.style.display = 'inline-block';
+  setStatus('');
+
+  setTimeout(() => {
+    try {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF('p', 'pt', 'a4');
+      const PW = doc.internal.pageSize.getWidth();
+      const PH = doc.internal.pageSize.getHeight();
+      const ML = 45, MR = 45, MT = 45, MB = 50;
+      const CW = PW - ML - MR;
+      let y = MT;
+
+      const addPage = () => { doc.addPage(); y = MT; drawFooter(doc, PW, PH, ML); };
+      const checkY = (need) => { if (y + need > PH - MB) addPage(); };
+
+      // Header
+      doc.setFillColor(26, 26, 46);
+      doc.rect(ML, y - 14, CW, 38, 'F');
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(12); doc.setTextColor(255,255,255);
+      doc.text('STA513 Statistical Programming — Lab Test Submission', ML + 8, y + 4);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor(180,185,220);
+      doc.text('Faculty of Computer and Mathematical Sciences  |  Universiti Teknologi MARA', ML + 8, y + 18);
+      y += 48; doc.setTextColor(0,0,0);
+
+      // Info table
+      const infoRows = [
+        ['Full Name', v('inp-name')], ['Student ID', v('inp-id')],
+        ['Class / Group', v('inp-class')], ['Dataset Name', v('inp-set')],
+        ['Date Submitted', fmtDate(document.getElementById('inp-date').value)],
+        ['File Submitted', fileName]
+      ];
+      const rh = 16, lw = 130;
+      infoRows.forEach(([label, val], i) => {
+        checkY(rh + 4);
+        doc.setFillColor(i % 2 === 0 ? 245 : 252, i % 2 === 0 ? 245 : 252, i % 2 === 0 ? 245 : 252);
+        doc.rect(ML, y - 11, CW, rh, 'F');
+        doc.setDrawColor(210); doc.rect(ML, y - 11, CW, rh, 'S');
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(9.5); doc.setTextColor(80,80,80);
+        doc.text(label, ML + 6, y);
+        doc.setFont('helvetica', 'normal'); doc.setTextColor(0,0,0);
+        doc.text(val, ML + lw, y);
+        y += rh;
+      });
+      y += 14;
+
+      // Code sections
+      const secs = splitSections(sasCode);
+      secs.forEach((sec) => {
+        checkY(40);
+        // Section heading bar
+        doc.setFillColor(44, 62, 122);
+        doc.rect(ML, y - 12, CW, 20, 'F');
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(255,255,255);
+        doc.text(sec.title, ML + 6, y);
+        doc.setTextColor(0,0,0);
+        y += 14;
+
+        // Code lines
+        doc.setFont('courier', 'normal'); doc.setFontSize(8.5);
+        const lines = doc.splitTextToSize(sec.code.trim(), CW - 10);
+        const LH = 11;
+        lines.forEach(line => {
+          checkY(LH + 2);
+          doc.text(line, ML + 5, y);
+          y += LH;
+        });
+        y += 12;
+      });
+
+      // Footer on page 1
+      drawFooter(doc, PW, PH, ML);
+
+      // Footer on all other pages
+      const total = doc.internal.getNumberOfPages();
+      for (let p = 2; p <= total; p++) {
+        doc.setPage(p); drawFooter(doc, PW, PH, ML, p, total);
+      }
+      // Fix page 1 with correct total
+      doc.setPage(1); drawFooter(doc, PW, PH, ML, 1, total);
+
+      const sid = v('inp-id').replace(/[^a-zA-Z0-9]/g, '');
+      doc.save('STA513_' + sid + '_submission.pdf');
+      setStatus('PDF downloaded successfully!', false);
+    } catch(err) {
+      setStatus('Error: ' + err.message, true);
+    } finally {
+      btn.disabled = false;
+      label.textContent = '⬇ Download PDF';
+      spinner.style.display = 'none';
     }
-    const reader = new FileReader();
-    reader.onload = e => {
-      sasCode = e.target.result;
-      document.getElementById('file-name-display').textContent = file.name;
-      document.getElementById('file-size-display').textContent =
-        (file.size / 1024).toFixed(1) + ' KB';
-      document.getElementById('file-info').style.display = 'flex';
-      buildPreview(file.name);
-    };
-    reader.readAsText(file);
-  }
+  }, 50);
+}
 
-  function buildPreview(filename) {
-    // Fill print fields
-    const fmt = v => v || '(not provided)';
-    document.getElementById('p-name').textContent  = fmt(document.getElementById('inp-name').value.trim());
-    document.getElementById('p-id').textContent    = fmt(document.getElementById('inp-id').value.trim());
-    document.getElementById('p-class').textContent = fmt(document.getElementById('inp-class').value.trim());
-    document.getElementById('p-set').textContent   = fmt(document.getElementById('inp-set').value.trim());
-    document.getElementById('p-file').textContent  = filename;
-    const d = document.getElementById('inp-date').value;
-    document.getElementById('p-date').textContent  = d ? new Date(d+'T00:00:00').toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'}) : '(not provided)';
-    document.getElementById('p-timestamp').textContent = 'Printed: ' + new Date().toLocaleString('en-GB');
+function drawFooter(doc, PW, PH, ML, page, total) {
+  const CW = PW - ML * 2;
+  doc.setDrawColor(180); doc.setLineWidth(0.5);
+  doc.line(ML, PH - 35, PW - ML, PH - 35);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(120);
+  const pageStr = (page && total) ? 'Page ' + page + ' of ' + total : '';
+  doc.text('STA513 Lab Test  |  ' + new Date().toLocaleString('en-GB'), ML, PH - 22);
+  if (pageStr) doc.text(pageStr, PW - ML, PH - 22, { align: 'right' });
+  doc.setTextColor(0);
+}
 
-    // Split code by question markers
-    const sections = splitByQuestion(sasCode);
-    const container = document.getElementById('p-code-sections');
-    container.innerHTML = '';
-    sections.forEach((sec, i) => {
-      const heading = document.createElement('div');
-      heading.className = 'section-heading';
-      heading.textContent = sec.title;
-      const pre = document.createElement('pre');
-      pre.className = 'code-block';
-      pre.textContent = sec.code.trim();
-      if (i > 0) { const pb = document.createElement('div'); pb.className = 'page-break'; container.appendChild(pb); }
-      container.appendChild(heading);
-      container.appendChild(pre);
-    });
-
-    // Show print wrapper, show preview section
-    document.getElementById('print-wrapper').style.display = 'block';
-    document.getElementById('preview-section').style.display = 'block';
-    document.getElementById('preview-section').scrollIntoView({behavior:'smooth'});
-  }
-
-  function splitByQuestion(code) {
-    // Try to detect question markers like /* QUESTION 1 */ or /* Q1 */ or /* Question 2 */
-    const pattern = /(?=\/\*\s*(?:question|q)\s*\d/i);
-    const parts = code.split(pattern).filter(p => p.trim());
-    if (parts.length <= 1) return [{ title: 'SAS Code', code: code }];
-    return parts.map(p => {
-      const m = p.match(/\/\*\s*(.*?)\s*\*\//);
-      const title = m ? m[1].replace(/\s+/g,' ').trim() : 'Code Section';
-      return { title: title.charAt(0).toUpperCase() + title.slice(1), code: p };
-    });
-  }
-
-  // Re-build preview when any field changes
-  ['inp-name','inp-id','inp-class','inp-set','inp-date'].forEach(id => {
-    document.getElementById(id).addEventListener('input', () => {
-      if (sasCode) buildPreview(document.getElementById('file-name-display').textContent || 'file.sas');
-    });
-  });
-
-  function resetForm() {
-    sasCode = '';
-    fileInput.value = '';
-    document.getElementById('file-info').style.display = 'none';
-    document.getElementById('preview-section').style.display = 'none';
-    document.getElementById('print-wrapper').style.display = 'none';
-    document.getElementById('p-code-sections').innerHTML = '';
-  }
-
-  // On print: hide screen UI, show print wrapper
-  window.addEventListener('beforeprint', () => {
-    if (sasCode) {
-      buildPreview(document.getElementById('file-name-display').textContent || 'file.sas');
-    }
-  });
+function setStatus(msg, isErr) {
+  const el = document.getElementById('status-msg');
+  el.textContent = msg;
+  el.className = 'status-msg' + (isErr === true ? ' err' : isErr === false ? ' ok' : '');
+}
 </script>
 </body>
 </html>
